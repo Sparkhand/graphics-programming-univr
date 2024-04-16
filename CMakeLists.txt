@@ -51,6 +51,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/build/bin)
 foreach(EXERCISE ${EXERCISES})
     file(GLOB EXERCISE_SOURCES
         "src/${EXERCISE}/*.h"
+        "src/${EXERCISE}/*.hpp"
         "src/${EXERCISE}/*.cpp"
         "src/${EXERCISE}/*.vs"
         "src/${EXERCISE}/*.fs"
@@ -67,8 +68,11 @@ foreach(EXERCISE ${EXERCISES})
 
     target_include_directories(${EXERCISE}
         PRIVATE "include/"
+        PRIVATE "vendor/assimp/include/"
         PRIVATE "vendor/glad/include/"
         PRIVATE "vendor/glfw/include/"
+        PRIVATE "vendor/glm/"
+        PRIVATE "vendor/stb/"
     )
 
     target_compile_definitions(${EXERCISE}
