@@ -1,5 +1,6 @@
 # CMakeLists.txt for LabOpenGL
 
+
 ## Initial setup
 ## ----------------------------
 
@@ -12,10 +13,13 @@ project(LabOpenGL)
 # A list of the exercises
 list(APPEND EXERCISES
     "1.1.1.hello_window"
+    "1.3.3.shaders_class"
+    "1.4.1.textures"
 )
 
 # Short names for directories
 set(PROJECT_VENDOR_DIR ${PROJECT_SOURCE_DIR}/vendor)
+set(PROJECT_INCLUDES_DIR ${PROJECT_SOURCE_DIR}/include)
 
 ## Compiler settings and additional libraries
 ## ----------------------------
@@ -32,6 +36,30 @@ option(ASSIMP_BUILD_SAMPLES OFF)
 option(ASSIMP_BUILD_TESTS OFF)
 add_subdirectory(${PROJECT_VENDOR_DIR}/assimp)
 
+# Project include directories
+include_directories(
+    "${PROJECT_INCLUDES_DIR}"
+    "${PROJECT_VENDOR_DIR}/assimp/include/"
+    "${PROJECT_VENDOR_DIR}/glad/include/"
+    "${PROJECT_VENDOR_DIR}/glfw/include/"
+    "${PROJECT_VENDOR_DIR}/glm/"
+    "${PROJECT_VENDOR_DIR}/stb/"
+)
+
+# Link libraries
+link_libraries(
+    assimp
+    glfw
+    ${GLFW_LIBRARIES}
+    ${GLAD_LIBRARIES}
+)
+
+# Compiler definitions
+add_definitions(
+    -DGLFW_INCLUDE_NONE
+    -DPROJECT_SOURCE_DIR="${PROJECT_SOURCE_DIR}"
+)
+
 # Add useful compiler flags
 if(MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4")
@@ -41,6 +69,7 @@ else()
         set(GLAD_LIBRARIES dl)
     endif()
 endif()
+
 
 ## Target
 ## ----------------------------
@@ -59,32 +88,27 @@ foreach(EXERCISE ${EXERCISES})
         "src/${EXERCISE}/*.tes"
         "src/${EXERCISE}/*.gs"
         "src/${EXERCISE}/*.cs"
+        "src/${EXERCISE}/*.jpg"
+        "src/${EXERCISE}/*.png"
     )
 
     add_executable(${EXERCISE}
         ${EXERCISE_SOURCES}
-        "vendor/glad/src/glad.c"
-    )
-
-    target_include_directories(${EXERCISE}
-        PRIVATE "include/"
-        PRIVATE "vendor/assimp/include/"
-        PRIVATE "vendor/glad/include/"
-        PRIVATE "vendor/glfw/include/"
-        PRIVATE "vendor/glm/"
-        PRIVATE "vendor/stb/"
-    )
-
-    target_compile_definitions(${EXERCISE}
-        PRIVATE "GLFW_INCLUDE_NONE"
-        PRIVATE "PROJECT_SOURCE_DIR=\"${PROJECT_SOURCE_DIR}\""
-    )
-
-    target_link_libraries(${EXERCISE}
-        glfw
-        assimp
-        ${GLFW_LIBRARIES}
-        ${GLAD_LIBRARIES}
+        ${PROJECT_VENDOR_DIR}/glad/src/glad.c
     )
     
+    # Filter EXERCISE_SOURCES for textures and shaders and copy them to the build directory
+    file(GLOB RESOURCES
+        "src/${EXERCISE}/*.vs"
+        "src/${EXERCISE}/*.fs"
+        "src/${EXERCISE}/*.tcs"
+        "src/${EXERCISE}/*.tes"
+        "src/${EXERCISE}/*.gs"
+        "src/${EXERCISE}/*.cs"
+        "src/${EXERCISE}/*.jpg"
+        "src/${EXERCISE}/*.png"
+    )
+    foreach(RESOURCE ${RESOURCES})
+        file(COPY ${RESOURCE} DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+    endforeach(RESOURCE ${RESOURCES})
 endforeach(EXERCISE ${EXERCISES})
