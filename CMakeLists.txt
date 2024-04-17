@@ -15,11 +15,25 @@ list(APPEND EXERCISES
     "1.1.1.hello_window"
     "1.3.3.shaders_class"
     "1.4.1.textures"
+    "1.4.2.textures_combined"
 )
 
 # Short names for directories
 set(PROJECT_VENDOR_DIR ${PROJECT_SOURCE_DIR}/vendor)
 set(PROJECT_INCLUDES_DIR ${PROJECT_SOURCE_DIR}/include)
+
+# Set CMake to run configure every time a file changes in:
+# src, resources, include or vendor
+file(GLOB_RECURSE TO_TRACK
+    "${PROJECT_SOURCE_DIR}/src/*"
+    "${PROJECT_SOURCE_DIR}/resources/*"
+    "${PROJECT_SOURCE_DIR}/include/*"
+    "${PROJECT_SOURCE_DIR}/vendor/*"    
+)
+
+set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
+    ${TO_TRACK}
+)
 
 ## Compiler settings and additional libraries
 ## ----------------------------
@@ -112,3 +126,11 @@ foreach(EXERCISE ${EXERCISES})
         file(COPY ${RESOURCE} DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
     endforeach(RESOURCE ${RESOURCES})
 endforeach(EXERCISE ${EXERCISES})
+
+
+## Resources
+## ----------------------------
+
+
+# Copy directory "resources" to the build directory
+file(COPY "resources" DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
