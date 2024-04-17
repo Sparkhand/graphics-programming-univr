@@ -16,6 +16,9 @@ list(APPEND EXERCISES
     "1.3.3.shaders_class"
     "1.4.1.textures"
     "1.4.2.textures_combined"
+    "1.4.6.textures_exercise4"
+	"1.4.3.textures_exercise1"
+#-#-#PYTHON-NEW-EXERCISE-PLACEHOLDER-#-#-#
 )
 
 # Short names for directories
@@ -91,40 +94,46 @@ endif()
 # Create targets
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/build/bin)
 
-foreach(EXERCISE ${EXERCISES})
-    file(GLOB EXERCISE_SOURCES
-        "src/${EXERCISE}/*.h"
-        "src/${EXERCISE}/*.hpp"
-        "src/${EXERCISE}/*.cpp"
-        "src/${EXERCISE}/*.vs"
-        "src/${EXERCISE}/*.fs"
-        "src/${EXERCISE}/*.tcs"
-        "src/${EXERCISE}/*.tes"
-        "src/${EXERCISE}/*.gs"
-        "src/${EXERCISE}/*.cs"
-        "src/${EXERCISE}/*.jpg"
-        "src/${EXERCISE}/*.png"
+function(add_target TARGET_NAME)
+    file(GLOB TARGET_SOURCES
+        "src/${TARGET_NAME}/*.h"
+        "src/${TARGET_NAME}/*.hpp"
+        "src/${TARGET_NAME}/*.cpp"
+        "src/${TARGET_NAME}/*.vs"
+        "src/${TARGET_NAME}/*.fs"
+        "src/${TARGET_NAME}/*.tcs"
+        "src/${TARGET_NAME}/*.tes"
+        "src/${TARGET_NAME}/*.gs"
+        "src/${TARGET_NAME}/*.cs"
+        "src/${TARGET_NAME}/*.jpg"
+        "src/${TARGET_NAME}/*.png"
     )
 
-    add_executable(${EXERCISE}
-        ${EXERCISE_SOURCES}
+    add_executable(${TARGET_NAME}
+        ${TARGET_SOURCES}
         ${PROJECT_VENDOR_DIR}/glad/src/glad.c
     )
     
-    # Filter EXERCISE_SOURCES for textures and shaders and copy them to the build directory
+    # Filter TARGET_SOURCES for textures and shaders and copy them to the build directory
     file(GLOB RESOURCES
-        "src/${EXERCISE}/*.vs"
-        "src/${EXERCISE}/*.fs"
-        "src/${EXERCISE}/*.tcs"
-        "src/${EXERCISE}/*.tes"
-        "src/${EXERCISE}/*.gs"
-        "src/${EXERCISE}/*.cs"
-        "src/${EXERCISE}/*.jpg"
-        "src/${EXERCISE}/*.png"
+        "src/${TARGET_NAME}/*.vs"
+        "src/${TARGET_NAME}/*.fs"
+        "src/${TARGET_NAME}/*.tcs"
+        "src/${TARGET_NAME}/*.tes"
+        "src/${TARGET_NAME}/*.gs"
+        "src/${TARGET_NAME}/*.cs"
+        "src/${TARGET_NAME}/*.jpg"
+        "src/${TARGET_NAME}/*.png"
     )
     foreach(RESOURCE ${RESOURCES})
         file(COPY ${RESOURCE} DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
     endforeach(RESOURCE ${RESOURCES})
+endfunction(add_target)
+
+
+# Create a target for each exercise
+foreach(EXERCISE ${EXERCISES})
+    add_target(${EXERCISE})
 endforeach(EXERCISE ${EXERCISES})
 
 
