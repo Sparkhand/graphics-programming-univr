@@ -5,7 +5,7 @@ This repository contains the code for the Graphics Programming course at the Uni
 ## How to build
 
 ```
-git clone --recursive git@github.com:Sparkhand/graphics-programming-univr.git
+git clone --recursive https://github.com/Sparkhand/graphics-programming-univr.git
 cd graphics-programming-univr
 
 mkdir build
