@@ -19,6 +19,7 @@ list(APPEND EXERCISES
     "1.4.2.1.crate_and_holes"
     "1.4.3.textures_exercise1"
     "1.4.6.textures_exercise4"
+	"1.5.1.transformations"
 #-#-#PYTHON-NEW-EXERCISE-PLACEHOLDER-#-#-#
 )
 
