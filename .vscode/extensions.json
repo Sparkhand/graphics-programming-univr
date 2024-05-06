@@ -1,0 +1,9 @@
+{
+    "recommendations": [
+        "llvm-vs-code-extensions.vscode-clangd",
+        "twxs.cmake",
+        "cheshirekow.cmake-format",
+        "ms-vscode.cmake-tools",
+        "dtoplak.vscode-glsllint",
+    ]
+}
