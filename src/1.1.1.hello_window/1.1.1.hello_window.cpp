@@ -1,66 +1,54 @@
-#include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <glad/glad.h>
 
 #include <iostream>
 
-/* Global vars and constants */
+/* --------- Global vars and constants --------- */
 
-// Window-related
-const unsigned int SCR_WIDTH = 800;
-const unsigned int SCR_HEIGHT = 600;
-const char *WINDOW_TITLE = "LearnOpenGL - 1.1.1 - Hello Window";
-const struct CLEAR_COLOR
-{
-    float r = 0.2f;
-    float g = 0.3f;
-    float b = 0.3f;
-    float a = 1.0f;
-} clear_color;
+// Window/Screen properties
+const struct WINDOW_PROPS {
+    // Screen
+    const unsigned int SCR_WIDTH = 800;
+    const unsigned int SCR_HEIGHT = 600;
+    // Window title
+    const char *TITLE = "LearnOpenGL - 1.1.1 - Hello Window";
+    // Clear color
+    const struct CLEAR_COLOR {
+        float r = 0.2f;
+        float g = 0.3f;
+        float b = 0.3f;
+        float a = 1.0f;
+    } CLEAR_COLOR;
+} WINDOW_PROPS;
 
-/* Additional functions declaration */
+/* --------- Additional functions declaration --------- */
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 void processInput(GLFWwindow *window);
+GLFWwindow *glfwSetup();
+void clearResources();
 
-/* Main */
-int main()
-{
-    // Initialize GLFW
-    glfwInit();
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-    // MacOS compatibility code
-#ifdef __APPLE__
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-#endif
-
-    // GLFW window creation
-    GLFWwindow *window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, WINDOW_TITLE, NULL, NULL);
-    if (window == NULL)
-    {
-        std::cout << "Failed to create GLFW window" << std::endl;
-        glfwTerminate();
+/* --------- Main --------- */
+int main() {
+    // Initialize GLFW and create window
+    GLFWwindow *window = glfwSetup();
+    if (window == nullptr) {
         return -1;
     }
-    glfwMakeContextCurrent(window);
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
     // Load OpenGL funciton pointers (GLAD init)
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-    {
+    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
         std::cout << "Failed to initialize GLAD" << std::endl;
         return -1;
     }
 
     // Render loop
-    while (!glfwWindowShouldClose(window))
-    {
+    while (!glfwWindowShouldClose(window)) {
         // Input handling
         processInput(window);
 
         // Render
-        glClearColor(clear_color.r, clear_color.g, clear_color.b, clear_color.a);
+        glClearColor(WINDOW_PROPS.CLEAR_COLOR.r, WINDOW_PROPS.CLEAR_COLOR.g,
+                     WINDOW_PROPS.CLEAR_COLOR.b, WINDOW_PROPS.CLEAR_COLOR.a);
         glClear(GL_COLOR_BUFFER_BIT);
 
         // (GLFW) Swap buffers and poll IO events
@@ -68,25 +56,54 @@ int main()
         glfwPollEvents();
     }
 
-    // Once the render loop is finished, terminate GLFW, clearing any resources allocated by GLFW
-    glfwTerminate();
+    // Once the render loop is finished, terminate GLFW and clear/free resources
+    clearResources();
     return 0;
 }
 
-/* Additional functions definition */
+/* --------- Additional functions definition  --------- */
+
+// Setup and init GLFW
+// -----------------------------------------------------------------------------
+GLFWwindow *glfwSetup() {
+    glfwInit();
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+// MacOS compatibility code
+#ifdef __APPLE__
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+#endif
+
+    GLFWwindow *window = glfwCreateWindow(WINDOW_PROPS.SCR_WIDTH, WINDOW_PROPS.SCR_HEIGHT,
+                                          WINDOW_PROPS.TITLE, NULL, NULL);
+
+    if (window == NULL) {
+        std::cerr << "Failed to create GLFW window" << std::endl;
+        glfwTerminate();
+        return nullptr;
+    }
+
+    glfwMakeContextCurrent(window);
+    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+
+    return window;
+}
+
+// Clear resources at the end of render loop
+// -----------------------------------------------------------------------------
+void clearResources() { glfwTerminate(); }
 
 // User input handling
 // -----------------------------------------------------------------------------
-void processInput(GLFWwindow *window)
-{
+void processInput(GLFWwindow *window) {
     // Close the window on ESC
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-        glfwSetWindowShouldClose(window, true);
+    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) glfwSetWindowShouldClose(window, true);
 }
 
 // Resize the viewport when the window is resized
 // -----------------------------------------------------------------------------
-void framebuffer_size_callback(GLFWwindow *window, int width, int height)
-{
+void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
     glViewport(0, 0, width, height);
 }
