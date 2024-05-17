@@ -57,7 +57,7 @@ std::vector<unsigned int> createShaders();
 unsigned int linkShaders(const unsigned int& vertexShader,
                          const unsigned int& fragmentShader);
 std::vector<unsigned int> getVObjects();
-void clearResources();
+void clearResources(unsigned int VBO, unsigned int VAO);
 
 /* --------- Main --------- */
 int main()
@@ -154,7 +154,7 @@ int main()
     }
 
     // Once the render loop is finished, terminate GLFW and clear/free resources
-    clearResources();
+    clearResources(VBO, VAO);
     return 0;
 }
 
@@ -266,11 +266,15 @@ std::vector<unsigned int> getVObjects()
 {
     // Vertices
     const float VERTICES[] = {
-        // positions         // colors
-        0.5f,  -0.5f, 0.0f, 1.0f, 0.0f, 0.0f,  // bottom right
-        -0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f,  // bottom left
-        0.0f,  0.5f,  0.0f, 0.0f, 0.0f, 1.0f   // top
-    };
+        // First triangle
+        -0.9f, -0.5f, 0.0f,  // left 
+        -0.0f, -0.5f, 0.0f,  // right
+        -0.45f, 0.5f, 0.0f,  // top 
+        // Second triangle
+         0.0f, -0.5f, 0.0f,  // left
+         0.9f, -0.5f, 0.0f,  // right
+         0.45f, 0.5f, 0.0f   // top 
+    }; 
 
     std::vector<unsigned int> vObjects;
 
@@ -302,8 +306,10 @@ std::vector<unsigned int> getVObjects()
 
 // Clear resources at the end of render loop
 // -----------------------------------------------------------------------------
-void clearResources()
+void clearResources(unsigned int VBO, unsigned int VAO)
 {
+    glDeleteVertexArrays(1, &VAO);
+    glDeleteBuffers(1, &VBO);
     glfwTerminate();
 }
 

@@ -1,8 +1,8 @@
 /******************************************************************************
- * File:        1.3.3.shaders_class.cpp
+ * File:        1.3.1.shaders_uniform.cpp
  * Author:      Davide Tarpini (https://github.com/Sparkhand)
- * Description: This example shows how to use the Shader class to simplify the
- *              shader management.
+ * Description: This example shows how to use uniforms in shaders to change the
+ *              color of the triangle.
  *****************************************************************************/
 
 #include <GLFW/glfw3.h>
@@ -10,6 +10,7 @@
 
 #include <learnopengl/shader_s.h>
 
+#include <cmath>
 #include <iostream>
 #include <vector>
 
@@ -22,7 +23,7 @@ const struct WINDOW_PROPS
     const unsigned int SCR_WIDTH = 800;
     const unsigned int SCR_HEIGHT = 600;
     // Window title
-    const char* TITLE = "LearnOpenGL - 1.3.3 - Shaders Class";
+    const char* TITLE = "LearnOpenGL - 1.3.1 - Shaders Uniform";
     // Clear color
     const struct CLEAR_COLOR
     {
@@ -33,10 +34,30 @@ const struct WINDOW_PROPS
     } CLEAR_COLOR;
 } WINDOW_PROPS;
 
+const char* VERTEX_SHADER_SRC =
+    "#version 330 core\n"
+    "layout (location = 0) in vec3 aPos;\n"
+    "void main()\n"
+    "{\n"
+    "   gl_Position = vec4(aPos, 1.0);\n"
+    "}\0";
+
+const char* FRAGMENT_SHADER_SRC =
+    "#version 330 core\n"
+    "out vec4 FragColor;\n"
+    "uniform vec4 ourColor;\n"
+    "void main()\n"
+    "{\n"
+    "   FragColor = ourColor;\n"
+    "}\n\0";
+
 /* --------- Additional functions declaration --------- */
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
 GLFWwindow* glfwSetup();
+std::vector<unsigned int> createShaders();
+unsigned int linkShaders(const unsigned int& vertexShader,
+                         const unsigned int& fragmentShader);
 std::vector<unsigned int> getVObjects();
 void clearResources(unsigned int VBO, unsigned int VAO);
 
@@ -63,8 +84,36 @@ int main()
         return -1;
     }
 
-    // Compile and link shaders
-    Shader ourShader("1.3.3.shader.vs", "1.3.3.shader.fs");
+    // Build and compile shaders
+    std::vector<unsigned int> shaders;
+    try
+    {
+        shaders = createShaders();
+    }
+    catch (const std::exception& e)
+    {
+        std::cerr << e.what() << std::endl;
+    }
+
+    if (shaders.size() != 2)
+    {
+        std::cerr << "ERROR! Shaders vector doesn't have 2 elements" << std::endl;
+        return -1;
+    }
+
+    unsigned int vertexShader = shaders[0];
+    unsigned int fragmentShader = shaders[1];
+
+    // Link shaders
+    unsigned int shaderProgram;
+    try
+    {
+        shaderProgram = linkShaders(vertexShader, fragmentShader);
+    }
+    catch (const std::exception& e)
+    {
+        std::cerr << e.what() << std::endl;
+    }
 
     // Vertex data and buffer
     std::vector<unsigned int> vObjects = getVObjects();
@@ -93,8 +142,15 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT);
 
         // Draw the triangle
-        ourShader.use();
+        glUseProgram(shaderProgram);
         glBindVertexArray(VAO);
+
+        // Update shader uniform before rendering
+        double timeValue = glfwGetTime();
+        float greenValue = static_cast<float>(std::sin(timeValue) / 2.0 + 0.5);
+        int vertexColorLocation = glGetUniformLocation(shaderProgram, "ourColor");
+        glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
+
         glDrawArrays(GL_TRIANGLES, 0, 3);
 
         // (GLFW) Swap buffers and poll IO events
@@ -137,16 +193,87 @@ GLFWwindow* glfwSetup()
     return window;
 }
 
+// Create and compile vertex shader and fragment shader
+// -----------------------------------------------------------------------------
+std::vector<unsigned int> createShaders()
+{
+    std::vector<unsigned int> shaders;
+
+    // Vertex shader
+    unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
+    glShaderSource(vertexShader, 1, &VERTEX_SHADER_SRC, NULL);
+    glCompileShader(vertexShader);
+
+    // Check for errors in vertex shader compilation
+    int success;
+    char infoLog[512];
+    glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
+    if (!success)
+    {
+        glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
+        throw std::runtime_error("ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" +
+                                 std::string(infoLog));
+    }
+    else
+    {
+        shaders.push_back(vertexShader);
+    }
+
+    // Fragment shader
+    unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(fragmentShader, 1, &FRAGMENT_SHADER_SRC, NULL);
+    glCompileShader(fragmentShader);
+
+    // Check for errors in fragment shader compilation
+    glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
+    if (!success)
+    {
+        glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
+        throw std::runtime_error("ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" +
+                                 std::string(infoLog));
+    }
+    else
+    {
+        shaders.push_back(fragmentShader);
+    }
+
+    return shaders;
+}
+
+// Link shaders
+// -----------------------------------------------------------------------------
+unsigned int linkShaders(const unsigned int& vertexShader,
+                         const unsigned int& fragmentShader)
+{
+    // Link vertex and fragment shaders into a shader program
+    unsigned int shaderProgram = glCreateProgram();
+    glAttachShader(shaderProgram, vertexShader);
+    glAttachShader(shaderProgram, fragmentShader);
+    glLinkProgram(shaderProgram);
+
+    // Check for errors in shader program linking
+    int success;
+    char infoLog[512];
+    glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
+    if (!success)
+    {
+        glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
+        throw std::runtime_error("ERROR::SHADER::PROGRAM::LINKING_FAILED\n" +
+                                 std::string(infoLog));
+    }
+
+    return shaderProgram;
+}
+
 // Creation of vertex data and buffer objects, and binding
 // -----------------------------------------------------------------------------
 std::vector<unsigned int> getVObjects()
 {
     // Vertices
     const float VERTICES[] = {
-        // positions         // colors
-        0.5f,  -0.5f, 0.0f, 1.0f, 0.0f, 0.0f,  // bottom right
-        -0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f,  // bottom left
-        0.0f,  0.5f,  0.0f, 0.0f, 0.0f, 1.0f   // top
+        0.5f,  -0.5f, 0.0f,  // bottom right
+        -0.5f, -0.5f, 0.0f,  // bottom left
+        0.0f,  0.5f,  0.0f   // top
     };
 
     std::vector<unsigned int> vObjects;
@@ -164,13 +291,8 @@ std::vector<unsigned int> getVObjects()
     glBufferData(GL_ARRAY_BUFFER, sizeof(VERTICES), VERTICES, GL_STATIC_DRAW);
 
     // Position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
-
-    // Color attribute
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float),
-                          (void*)(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
 
     // Unbind VAO
     glBindVertexArray(0);

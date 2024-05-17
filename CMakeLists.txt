@@ -17,6 +17,7 @@ list(APPEND EXERCISES
 	"1.2.3.hello_triangle_exercise1"
 	"1.2.4.hello_triangle_exercise2"
 	"1.2.5.hello_triangle_exercise3"
+	"1.3.1.shaders_uniform"
     "1.3.3.shaders_class"
     "1.4.1.textures"
     "1.4.2.textures_combined"
@@ -25,6 +26,7 @@ list(APPEND EXERCISES
     "1.4.6.textures_exercise4"
     "1.5.1.transformations"
 	"1.5.2.transformations_exercise2"
+	"5.4.normal_mapping"
 #-#-#PYTHON-NEW-EXERCISE-PLACEHOLDER-#-#-#
 )
 

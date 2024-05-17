@@ -2,7 +2,7 @@
  * File:        1.2.5.hello_triangle_exercise3.cpp
  * Author:      Davide Tarpini (https://github.com/Sparkhand)
  * Description: Similarly to example 1.2.4, this example shows how to draw two
- *              triangles using two different VAOs and VBOs.
+ *              triangles with two different fragment shaders.
  *****************************************************************************/
 
 #include <GLFW/glfw3.h>
@@ -21,7 +21,7 @@ const struct WINDOW_PROPS
     const unsigned int SCR_WIDTH = 800;
     const unsigned int SCR_HEIGHT = 600;
     // Window title
-    const char* TITLE = "LearnOpenGL - 1.2.4 - Hello Triangle Exercise 2";
+    const char* TITLE = "LearnOpenGL - 1.2.5 - Hello Triangle Exercise 3";
     // Clear color
     const struct CLEAR_COLOR
     {
