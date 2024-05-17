@@ -1,19 +1,29 @@
+/******************************************************************************
+ * File:        1.1.1.hello_window.cpp
+ * Author:      Davide Tarpini (https://github.com/Sparkhand)
+ * Description: This is an example of how to create a window with GLFW and
+ *              OpenGL.
+ *****************************************************************************/
+
 #include <GLFW/glfw3.h>
 #include <glad/glad.h>
 
+#include <exception>
 #include <iostream>
 
 /* --------- Global vars and constants --------- */
 
 // Window/Screen properties
-const struct WINDOW_PROPS {
+const struct WINDOW_PROPS
+{
     // Screen
     const unsigned int SCR_WIDTH = 800;
     const unsigned int SCR_HEIGHT = 600;
     // Window title
-    const char *TITLE = "LearnOpenGL - 1.1.1 - Hello Window";
+    const char* TITLE = "LearnOpenGL - 1.1.1 - Hello Window";
     // Clear color
-    const struct CLEAR_COLOR {
+    const struct CLEAR_COLOR
+    {
         float r = 0.2f;
         float g = 0.3f;
         float b = 0.3f;
@@ -22,27 +32,37 @@ const struct WINDOW_PROPS {
 } WINDOW_PROPS;
 
 /* --------- Additional functions declaration --------- */
-void framebuffer_size_callback(GLFWwindow *window, int width, int height);
-void processInput(GLFWwindow *window);
-GLFWwindow *glfwSetup();
+void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+void processInput(GLFWwindow* window);
+GLFWwindow* glfwSetup();
 void clearResources();
 
 /* --------- Main --------- */
-int main() {
+int main()
+{
     // Initialize GLFW and create window
-    GLFWwindow *window = glfwSetup();
-    if (window == nullptr) {
+    GLFWwindow* window;
+    try
+    {
+        window = glfwSetup();
+    }
+    catch (const std::exception& e)
+    {
+        glfwTerminate();
+        std::cerr << e.what() << std::endl;
         return -1;
     }
 
-    // Load OpenGL funciton pointers (GLAD init)
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+    // Load OpenGL function pointers (GLAD init)
+    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+    {
         std::cout << "Failed to initialize GLAD" << std::endl;
         return -1;
     }
 
     // Render loop
-    while (!glfwWindowShouldClose(window)) {
+    while (!glfwWindowShouldClose(window))
+    {
         // Input handling
         processInput(window);
 
@@ -65,7 +85,8 @@ int main() {
 
 // Setup and init GLFW
 // -----------------------------------------------------------------------------
-GLFWwindow *glfwSetup() {
+GLFWwindow* glfwSetup()
+{
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -76,13 +97,12 @@ GLFWwindow *glfwSetup() {
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 
-    GLFWwindow *window = glfwCreateWindow(WINDOW_PROPS.SCR_WIDTH, WINDOW_PROPS.SCR_HEIGHT,
+    GLFWwindow* window = glfwCreateWindow(WINDOW_PROPS.SCR_WIDTH, WINDOW_PROPS.SCR_HEIGHT,
                                           WINDOW_PROPS.TITLE, NULL, NULL);
 
-    if (window == NULL) {
-        std::cerr << "Failed to create GLFW window" << std::endl;
-        glfwTerminate();
-        return nullptr;
+    if (window == NULL)
+    {
+        throw std::runtime_error("Failed to create GLFW window");
     }
 
     glfwMakeContextCurrent(window);
@@ -93,17 +113,25 @@ GLFWwindow *glfwSetup() {
 
 // Clear resources at the end of render loop
 // -----------------------------------------------------------------------------
-void clearResources() { glfwTerminate(); }
+void clearResources()
+{
+    glfwTerminate();
+}
 
 // User input handling
 // -----------------------------------------------------------------------------
-void processInput(GLFWwindow *window) {
+void processInput(GLFWwindow* window)
+{
     // Close the window on ESC
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) glfwSetWindowShouldClose(window, true);
+    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+    {
+        glfwSetWindowShouldClose(window, true);
+    }
 }
 
 // Resize the viewport when the window is resized
 // -----------------------------------------------------------------------------
-void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
+void framebuffer_size_callback(GLFWwindow* window, int width, int height)
+{
     glViewport(0, 0, width, height);
 }
