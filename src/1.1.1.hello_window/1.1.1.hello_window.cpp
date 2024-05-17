@@ -131,7 +131,7 @@ void processInput(GLFWwindow* window)
 
 // Resize the viewport when the window is resized
 // -----------------------------------------------------------------------------
-void framebuffer_size_callback(GLFWwindow* window, int width, int height)
+void framebuffer_size_callback(GLFWwindow* /*window*/, int width, int height)
 {
     glViewport(0, 0, width, height);
 }
