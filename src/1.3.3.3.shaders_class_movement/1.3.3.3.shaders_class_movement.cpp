@@ -1,8 +1,9 @@
 /******************************************************************************
- * File:        1.3.3.shaders_class.cpp
+ * File:        1.3.3.3.shaders_class_movement.cpp
  * Author:      Davide Tarpini (https://github.com/Sparkhand)
  * Description: This example shows how to use the Shader class to simplify the
- *              shader management.
+ *              shader management and how to move the triangle on the x-axis
+ *              over time by using a uniform variable.
  *****************************************************************************/
 
 #include <GLFW/glfw3.h>
@@ -10,6 +11,7 @@
 
 #include <learnopengl/shader_s.h>
 
+#include <cmath>
 #include <iostream>
 #include <vector>
 
@@ -64,7 +66,8 @@ int main()
     }
 
     // Compile and link shaders
-    Shader ourShader("1.3.3.shaders_class.vs", "1.3.3.shaders_class.fs");
+    Shader ourShader("1.3.3.3.shaders_class_movement.vs",
+                     "1.3.3.3.shaders_class_movement.fs");
 
     // Vertex data and buffer
     std::vector<unsigned int> vObjects = getVObjects();
@@ -93,6 +96,9 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT);
 
         // Draw the triangle
+        double timeValue = glfwGetTime();
+        float xOffset = static_cast<float>(sin(timeValue) / 2.0);
+        ourShader.setFloat("xOffset", xOffset);
         ourShader.use();
         glBindVertexArray(VAO);
         glDrawArrays(GL_TRIANGLES, 0, 3);

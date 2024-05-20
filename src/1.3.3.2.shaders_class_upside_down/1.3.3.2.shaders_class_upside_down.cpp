@@ -1,8 +1,9 @@
 /******************************************************************************
- * File:        1.3.3.shaders_class.cpp
+ * File:        1.3.3.2.shaders_class_upside_down.cpp
  * Author:      Davide Tarpini (https://github.com/Sparkhand)
  * Description: This example shows how to use the Shader class to simplify the
- *              shader management.
+ *              shader management and how to draw the triangle upside down by
+ *              editing the vertex shader only.
  *****************************************************************************/
 
 #include <GLFW/glfw3.h>
@@ -22,7 +23,7 @@ const struct WINDOW_PROPS
     const unsigned int SCR_WIDTH = 800;
     const unsigned int SCR_HEIGHT = 600;
     // Window title
-    const char* TITLE = "LearnOpenGL - 1.3.3 - Shaders Class";
+    const char* TITLE = "LearnOpenGL - 1.3.3.2 - Shaders Class Upside Down";
     // Clear color
     const struct CLEAR_COLOR
     {
@@ -64,7 +65,8 @@ int main()
     }
 
     // Compile and link shaders
-    Shader ourShader("1.3.3.shaders_class.vs", "1.3.3.shaders_class.fs");
+    Shader ourShader("1.3.3.2.shaders_class_upside_down.vs",
+                     "1.3.3.2.shaders_class_upside_down.fs");
 
     // Vertex data and buffer
     std::vector<unsigned int> vObjects = getVObjects();

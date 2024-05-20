@@ -126,7 +126,7 @@ int main()
         return -1;
     }
 
-    unsigned int VBO = vObjects[0];
+    // unsigned int VBO = vObjects[0]; // Not really needed in this example at this point
     unsigned int VAO = vObjects[1];
 
     // OPTIONAL: Wireframe mode (unc/comment to toggle)

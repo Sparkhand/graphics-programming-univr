@@ -1,8 +1,12 @@
 /******************************************************************************
- * File:        1.3.3.shaders_class.cpp
+ * File:        1.3.3.4.shaders_class_fragment_position.cpp
  * Author:      Davide Tarpini (https://github.com/Sparkhand)
  * Description: This example shows how to use the Shader class to simplify the
- *              shader management.
+ *              shader management and pass the vertex position to the fragment
+ *              shader to color the triangle based on its position.
+ * Note:        The bottom-left side of the triangle will be black as the
+ *              coordinates of the left vertex are (-0.5, -0.5, 0.0) and they
+ *              are normalized to the range [0, 1] in the fragment shader.
  *****************************************************************************/
 
 #include <GLFW/glfw3.h>
@@ -64,7 +68,8 @@ int main()
     }
 
     // Compile and link shaders
-    Shader ourShader("1.3.3.shaders_class.vs", "1.3.3.shaders_class.fs");
+    Shader ourShader("1.3.3.4.shaders_class_fragment_position.vs",
+                     "1.3.3.4.shaders_class_fragment_position.fs");
 
     // Vertex data and buffer
     std::vector<unsigned int> vObjects = getVObjects();

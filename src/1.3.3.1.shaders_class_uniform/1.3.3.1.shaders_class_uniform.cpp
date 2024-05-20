@@ -1,8 +1,9 @@
 /******************************************************************************
- * File:        1.3.3.shaders_class.cpp
+ * File:        1.3.3.1.shaders_class_uniform.cpp
  * Author:      Davide Tarpini (https://github.com/Sparkhand)
- * Description: This example shows how to use the Shader class to simplify the
- *              shader management.
+ * Description: This example uses the shader class to simplify the shader
+ *              management and shows how to use a uniform variable to change the
+ *              color (green value) of the triangle.
  *****************************************************************************/
 
 #include <GLFW/glfw3.h>
@@ -10,6 +11,7 @@
 
 #include <learnopengl/shader_s.h>
 
+#include <cmath>
 #include <iostream>
 #include <vector>
 
@@ -22,7 +24,7 @@ const struct WINDOW_PROPS
     const unsigned int SCR_WIDTH = 800;
     const unsigned int SCR_HEIGHT = 600;
     // Window title
-    const char* TITLE = "LearnOpenGL - 1.3.3 - Shaders Class";
+    const char* TITLE = "LearnOpenGL - 1.3.3.1 - Shaders Class Uniform";
     // Clear color
     const struct CLEAR_COLOR
     {
@@ -64,7 +66,7 @@ int main()
     }
 
     // Compile and link shaders
-    Shader ourShader("1.3.3.shaders_class.vs", "1.3.3.shaders_class.fs");
+    Shader ourShader("1.3.3.1.shaders_class_uniform.vs", "1.3.3.1.shaders_class_uniform.fs");
 
     // Vertex data and buffer
     std::vector<unsigned int> vObjects = getVObjects();
@@ -93,6 +95,9 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT);
 
         // Draw the triangle
+        double timeValue = glfwGetTime();
+        float greenValue = static_cast<float>(sin(timeValue) / 2.0 + 0.5);
+        ourShader.setFloat("greenValue", greenValue);
         ourShader.use();
         glBindVertexArray(VAO);
         glDrawArrays(GL_TRIANGLES, 0, 3);
@@ -144,9 +149,9 @@ std::vector<unsigned int> getVObjects()
     // Vertices
     const float VERTICES[] = {
         // positions         // colors
-        0.5f,  -0.5f, 0.0f, 1.0f, 0.0f, 0.0f,  // bottom right
-        -0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f,  // bottom left
-        0.0f,  0.5f,  0.0f, 0.0f, 0.0f, 1.0f   // top
+        0.5f,  -0.5f, 0.0f,  // bottom right
+        -0.5f, -0.5f, 0.0f,  // bottom left
+        0.0f,  0.5f,  0.0f,   // top
     };
 
     std::vector<unsigned int> vObjects;
@@ -164,13 +169,8 @@ std::vector<unsigned int> getVObjects()
     glBufferData(GL_ARRAY_BUFFER, sizeof(VERTICES), VERTICES, GL_STATIC_DRAW);
 
     // Position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
-
-    // Color attribute
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float),
-                          (void*)(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
 
     // Unbind VAO
     glBindVertexArray(0);
