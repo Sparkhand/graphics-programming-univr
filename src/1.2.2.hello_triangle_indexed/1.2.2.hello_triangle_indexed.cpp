@@ -294,10 +294,7 @@ std::vector<unsigned int> getVObjects()
     // strange bugs)
     glBindVertexArray(0);
 
-    vObjects.push_back(VBO);
-    vObjects.push_back(VAO);
-
-    return vObjects;
+    return {VBO, VAO};
 }
 
 // Clear resources at the end of render loop
