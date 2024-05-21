@@ -1,238 +1,337 @@
-#include <glad/glad.h>
+/******************************************************************************
+ * File:        1.4.6.textures_exercise4.cpp
+ * Author:      Davide Tarpini (https://github.com/Sparkhand)
+ * Description: Starting from 1.4.2.textures_combined, this exercise requires
+ *              to change the interpolation coefficient over time or by
+ *              pressing a key.
+ *****************************************************************************/
+
 #include <GLFW/glfw3.h>
+#include <glad/glad.h>
+#include <learnopengl/shader.h>
+
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
-#include <learnopengl/shader_s.h>
 
 #include <iostream>
+#include <string>
+#include <vector>
 
-void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-void processInput(GLFWwindow *window);
+/* --------- Global vars and constants --------- */
 
-// settings
-const unsigned int SCR_WIDTH = 800;
-const unsigned int SCR_HEIGHT = 600;
+// Window/Screen properties
+const struct WINDOW_PROPS
+{
+    // Screen
+    const unsigned int SCR_WIDTH = 800;
+    const unsigned int SCR_HEIGHT = 600;
+    // Window title
+    const char* TITLE = "LearnOpenGL - 1.4.6 Textures Exercise 4";
+    // Clear color
+    const struct CLEAR_COLOR
+    {
+        float r = 0.2f;
+        float g = 0.3f;
+        float b = 0.3f;
+        float a = 1.0f;
+    } CLEAR_COLOR;
+} WINDOW_PROPS;
 
-// extra
-const bool isInterpCoeffTimeBased = true;
+// Texture interpolation coefficient
+bool isInterpCoeffTimeBased = true;
 float textureInterpCoeff = 0.5f;
 
+/* --------- Additional functions declaration --------- */
+void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+void processInput(GLFWwindow* window);
+GLFWwindow* glfwSetup();
+std::vector<unsigned int> getVObjects();
+unsigned int loadTexture(std::string path, bool transparency = false, bool flip = false);
+void clearResources(unsigned int VBO, unsigned int VAO, unsigned int EBO);
+
+/* --------- Main --------- */
 int main()
 {
-    // glfw: initialize and configure
-    // ------------------------------
-    glfwInit();
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-#ifdef __APPLE__
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-#endif
-
-    // glfw window creation
-    // --------------------
-    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
-    if (window == NULL)
+    // Initialize GLFW and create window
+    GLFWwindow* window;
+    try
     {
-        std::cout << "Failed to create GLFW window" << std::endl;
+        window = glfwSetup();
+    }
+    catch (const std::exception& e)
+    {
         glfwTerminate();
+        std::cerr << e.what() << std::endl;
         return -1;
     }
-    glfwMakeContextCurrent(window);
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-    // glad: load all OpenGL function pointers
-    // ---------------------------------------
+    // Load OpenGL function pointers (GLAD init)
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
-        std::cout << "Failed to initialize GLAD" << std::endl;
+        std::cerr << "Failed to initialize GLAD" << std::endl;
         return -1;
     }
 
-    // build and compile our shader zprogram
-    // ------------------------------------
+    // Compile and link shaders
     Shader ourShader("1.4.6.textures_exercise4.vs", "1.4.6.textures_exercise4.fs");
 
-    // set up vertex data (and buffer(s)) and configure vertex attributes
-    // ------------------------------------------------------------------
-    float vertices[] = {
-        // positions          // colors           // texture coords
-         0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f, // top right
-         0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f, // bottom right
-        -0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f, // bottom left
-        -0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f  // top left 
-    };
-    unsigned int indices[] = {
-        0, 1, 3, // first triangle
-        1, 2, 3  // second triangle
-    };
-    unsigned int VBO, VAO, EBO;
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-    glGenBuffers(1, &EBO);
+    // Vertex data and buffer
+    std::vector<unsigned int> vObjects = getVObjects();
 
-    glBindVertexArray(VAO);
-
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
-    // position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-    // color attribute
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
-    // texture coord attribute
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
-    glEnableVertexAttribArray(2);
-
-
-    // load and create a texture 
-    // -------------------------
-    unsigned int texture1, texture2;
-    // texture 1
-    // ---------
-    glGenTextures(1, &texture1);
-    glBindTexture(GL_TEXTURE_2D, texture1); 
-     // set the texture wrapping parameters
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	// set texture wrapping to GL_REPEAT (default wrapping method)
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    // set texture filtering parameters
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    // load image, create texture and generate mipmaps
-    int width, height, nrChannels;
-    stbi_set_flip_vertically_on_load(true); // tell stb_image.h to flip loaded texture's on the y-axis.
-    unsigned char *data = stbi_load("resources/textures/container.jpg", &width, &height, &nrChannels, 0);
-    if (data)
+    if (vObjects.size() != 3)
     {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-        glGenerateMipmap(GL_TEXTURE_2D);
+        std::cerr << "ERROR! VertexObjects vector doesn't have 3 elements" << std::endl;
+        return -1;
     }
-    else
+
+    unsigned int VBO = vObjects[0];
+    unsigned int VAO = vObjects[1];
+    unsigned int EBO = vObjects[2];
+
+    // OPTIONAL: Wireframe mode (unc/comment to toggle)
+    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+    // Load and create texture 1 container
+    unsigned int textureContainer;
+    try
     {
-        std::cout << "Failed to load texture" << std::endl;
+        textureContainer = loadTexture("resources/textures/container.jpg");
     }
-    stbi_image_free(data);
-    // texture 2
-    // ---------
-    glGenTextures(1, &texture2);
-    glBindTexture(GL_TEXTURE_2D, texture2);
-    // set the texture wrapping parameters
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	// set texture wrapping to GL_REPEAT (default wrapping method)
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    // set texture filtering parameters
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    // load image, create texture and generate mipmaps
-    data = stbi_load("resources/textures/awesomeface.png", &width, &height, &nrChannels, 0);
-    if (data)
+    catch (const std::exception& e)
     {
-        // note that the awesomeface.png has transparency and thus an alpha channel, so make sure to tell OpenGL the data type is of GL_RGBA
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-        glGenerateMipmap(GL_TEXTURE_2D);
+        std::cerr << e.what() << std::endl;
     }
-    else
+
+    // Load and create texture 2 (holes)
+    unsigned int textureFace;
+    try
     {
-        std::cout << "Failed to load texture" << std::endl;
+        textureFace = loadTexture("resources/textures/awesomeface.png", true, true);
     }
-    stbi_image_free(data);
+    catch (const std::exception& e)
+    {
+        std::cerr << e.what() << std::endl;
+    }
 
-    // tell opengl for each sampler to which texture unit it belongs to (only has to be done once)
-    // -------------------------------------------------------------------------------------------
-    ourShader.use(); // don't forget to activate/use the shader before setting uniforms!
-    // either set it manually like so:
-    glUniform1i(glGetUniformLocation(ourShader.ID, "texture1"), 0);
-    // or set it via the texture class
-    ourShader.setInt("texture2", 1);
+    // Tell OpenGL for each sampler to which texture unit it belongs to
+    ourShader.use();
+    ourShader.setInt("textureContainer", 0);
+    ourShader.setInt("textureFace", 1);
 
-
-
-    // render loop
-    // -----------
+    // Render loop
     while (!glfwWindowShouldClose(window))
     {
-        // input
-        // -----
+        // Input handling
         processInput(window);
 
-        // render
-        // ------
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+        // Render
+        glClearColor(WINDOW_PROPS.CLEAR_COLOR.r, WINDOW_PROPS.CLEAR_COLOR.g,
+                     WINDOW_PROPS.CLEAR_COLOR.b, WINDOW_PROPS.CLEAR_COLOR.a);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        // bind textures on corresponding texture units
+        // Bind texture
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, texture1);
+        glBindTexture(GL_TEXTURE_2D, textureContainer);
         glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, texture2);
+        glBindTexture(GL_TEXTURE_2D, textureFace);
 
-        // change the interpolation coefficient over time
+        // Change interpolation coefficient
         if (isInterpCoeffTimeBased)
         {
             textureInterpCoeff = (sin(glfwGetTime()) + 1.0f) / 2.0f;
         }
 
-        // pass the texture interpolation coefficient to the fragment shader
         ourShader.setFloat("textureInterpCoeff", textureInterpCoeff);
 
-        // render container
+        // Draw container
         ourShader.use();
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
-        // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
-        // -------------------------------------------------------------------------------
+        // (GLFW) Swap buffers and poll IO events
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
 
-    // optional: de-allocate all resources once they've outlived their purpose:
-    // ------------------------------------------------------------------------
-    glDeleteVertexArrays(1, &VAO);
-    glDeleteBuffers(1, &VBO);
-    glDeleteBuffers(1, &EBO);
-
-    // glfw: terminate, clearing all previously allocated GLFW resources.
-    // ------------------------------------------------------------------
-    glfwTerminate();
+    // Once the render loop is finished, terminate GLFW and clear/free resources
+    clearResources(VBO, VAO, EBO);
     return 0;
 }
 
-// process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
-// ---------------------------------------------------------------------------------------------------------
-void processInput(GLFWwindow *window)
-{
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-        glfwSetWindowShouldClose(window, true);
+/* --------- Additional functions definition  --------- */
 
+// Setup and init GLFW
+// -----------------------------------------------------------------------------
+GLFWwindow* glfwSetup()
+{
+    glfwInit();
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+// MacOS compatibility code
+#ifdef __APPLE__
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+#endif
+
+    GLFWwindow* window = glfwCreateWindow(WINDOW_PROPS.SCR_WIDTH, WINDOW_PROPS.SCR_HEIGHT,
+                                          WINDOW_PROPS.TITLE, NULL, NULL);
+
+    if (window == NULL)
+    {
+        throw std::runtime_error("Failed to create GLFW window");
+    }
+
+    glfwMakeContextCurrent(window);
+    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+
+    return window;
+}
+
+// Creation of vertex data and buffer objects, and binding
+// -----------------------------------------------------------------------------
+std::vector<unsigned int> getVObjects()
+{
+    // Vertices
+    const float VERTICES[] = {
+        // positions          // colors           // texture coords
+        0.5f,  0.5f,  0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f,  // top right
+        0.5f,  -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f,  // bottom right
+        -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,  // bottom left
+        -0.5f, 0.5f,  0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f   // top left
+    };
+
+    // Indices
+    const unsigned int INDICES[] = {
+        0, 1, 3,  // first triangle
+        1, 2, 3   // second triangle
+    };
+
+    std::vector<unsigned int> vObjects;
+
+    // Create VBO and VAO, and this time EBO (Element Buffer Object)
+    unsigned int VBO, VAO, EBO;
+    glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
+    glGenBuffers(1, &EBO);
+
+    // Bind VAO first, then VBO and EBO
+    glBindVertexArray(VAO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(VERTICES), VERTICES, GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(INDICES), INDICES, GL_STATIC_DRAW);
+
+    // Position attribute
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+
+    // Color attribute
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float),
+                          (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+
+    // Texture coord attribute
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float),
+                          (void*)(6 * sizeof(float)));
+    glEnableVertexAttribArray(2);
+
+    // Unbind VAO
+    glBindVertexArray(0);
+
+    return {VBO, VAO, EBO};
+}
+
+// Load texture from file
+// -----------------------------------------------------------------------------
+unsigned int loadTexture(std::string path, bool transparency, bool flip)
+{
+    // Texture creation and loading
+    unsigned int texture;
+    glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D, texture);
+
+    // From here on, all texture functions will modify this texture object
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,
+                    GL_REPEAT);  // (default wrapping method)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+    // Texture filtering parameters
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    // Load image, create texture and generate mipmaps
+    int width, height, nrChannels;
+
+    stbi_set_flip_vertically_on_load(flip);
+
+    unsigned char* data = stbi_load(path.c_str(), &width, &height, &nrChannels, 0);
+
+    if (data)
+    {
+        int transparencyMode = transparency ? GL_RGBA : GL_RGB;
+        glTexImage2D(GL_TEXTURE_2D, 0, transparencyMode, width, height, 0,
+                     transparencyMode, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+    }
+    else
+    {
+        throw std::runtime_error("Failed to load texture");
+    }
+
+    stbi_image_free(data);
+
+    return texture;
+}
+
+// Clear resources at the end of render loop
+// -----------------------------------------------------------------------------
+void clearResources(unsigned int VBO, unsigned int VAO, unsigned int EBO)
+{
+    glDeleteVertexArrays(1, &VAO);
+    glDeleteBuffers(1, &VBO);
+    glDeleteBuffers(1, &EBO);
+    glfwTerminate();
+}
+
+// User input handling
+// -----------------------------------------------------------------------------
+void processInput(GLFWwindow* window)
+{
+    // Close the window on ESC
+    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+    {
+        glfwSetWindowShouldClose(window, true);
+    }
+
+    // Check for the press of the 'M' key to toggle between automatic and manual
+    // interpolation coefficient change
+    if (glfwGetKey(window, GLFW_KEY_M) == GLFW_PRESS)
+    {
+        isInterpCoeffTimeBased = !isInterpCoeffTimeBased;
+    }
+
+    // Check for the press of UP or W key to increase the interpolation coefficient
     if (!isInterpCoeffTimeBased)
     {
-        // Detect the user pressing the up arrow key or W key
-        if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+        if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS ||
+            glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
         {
-            // Increment the interpolation coefficient
-            textureInterpCoeff += 0.01f;
-
-            // Clamp the interpolation coefficient to the range [0, 1]
-            if (textureInterpCoeff >= 1.0f)
+            textureInterpCoeff += 0.001f;
+            if (textureInterpCoeff > 1.0f)
             {
                 textureInterpCoeff = 1.0f;
             }
         }
 
-        // Detect the user pressing the down arrow key or S key
-        if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+        // Check for the press of DOWN or S key to decrease the interpolation coefficient
+        if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS ||
+            glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
         {
-            // Decrement the interpolation coefficient
-            textureInterpCoeff -= 0.01f;
-
-            // Clamp the interpolation coefficient to the range [0, 1]
-            if (textureInterpCoeff <= 0.0f)
+            textureInterpCoeff -= 0.001f;
+            if (textureInterpCoeff < 0.0f)
             {
                 textureInterpCoeff = 0.0f;
             }
@@ -240,11 +339,9 @@ void processInput(GLFWwindow *window)
     }
 }
 
-// glfw: whenever the window size changed (by OS or user resize) this callback function executes
-// ---------------------------------------------------------------------------------------------
-void framebuffer_size_callback(GLFWwindow* window, int width, int height)
+// Resize the viewport when the window is resized
+// -----------------------------------------------------------------------------
+void framebuffer_size_callback(GLFWwindow* /*window*/, int width, int height)
 {
-    // make sure the viewport matches the new window dimensions; note that width and 
-    // height will be significantly larger than specified on retina displays.
     glViewport(0, 0, width, height);
 }

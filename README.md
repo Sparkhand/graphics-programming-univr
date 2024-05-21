@@ -24,10 +24,16 @@ cmake --build .
 Each exercise/homework assigned by the professor has a corresponding folder in the repository:
 
 - **Shaders**
-  - [Exercise 1: *shader with uniform* {1.3.1.shaders_uniform}](src/1.3.1.shaders_uniform)
-  - [Exercise 2: *shader interpolation* {1.3.2.shaders_interpolation}](src/1.3.2.shaders_interpolation)
-  - [Exercise 3: *shader class* {1.3.3.shaders_class}](src/1.3.3.shaders_class)
-  - [Homework 1: *shader class with uniform* {1.3.3.1.shaders_class_uniform}](src/1.3.3.1.shaders_class_uniform/)
-  - [Homework 2: *upside-down triangle* {1.3.3.2.shaders_class_upside_down}](src/1.3.3.2.shaders_class_upside_down/)
-  - [Homework 3: *move triangle along horizontal axis* {1.3.3.3.shaders_class_movement}](src/1.3.3.3.shaders_class_movement/)
-  - [Homework 4: *color triangle with fragment position* {1.3.3.4.shaders_class_fragment_position}](src/1.3.3.4.shaders_class_fragment_position/)
+  - Exercise 1: *shader with uniform* [{1.3.1.shaders_uniform}](src/1.3.1.shaders_uniform)
+  - Exercise 2: *shader interpolation* [{1.3.2.shaders_interpolation}](src/1.3.2.shaders_interpolation)
+  - Exercise 3: *shader class* [{1.3.3.shaders_class}](src/1.3.3.shaders_class)
+  - Homework 1: *shader class with uniform* [{1.3.3.1.shaders_class_uniform}](src/1.3.3.1.shaders_class_uniform/)
+  - Homework 2: *upside-down triangle* [{1.3.3.2.shaders_class_upside_down}](src/1.3.3.2.shaders_class_upside_down/)
+  - Homework 3: *move triangle along horizontal axis* [{1.3.3.3.shaders_class_movement}](src/1.3.3.3.shaders_class_movement/)
+  - Homework 4: *color triangle with fragment position* [{1.3.3.4.shaders_class_fragment_position}](src/1.3.3.4.shaders_class_fragment_position/)
+- **Textures**
+  - Exercise 1: *texture* [{1.4.1.textures}](src/1.4.1.textures)
+  - Exercise 2: *texture unit* [{1.4.2.textures_combined}](src/1.4.2.textures_combined)
+  - Homework 1: *face-reverse* [{1.4.3.textures_exercise1}](src/1.4.3.textures_exercise1)
+  - Homework 2: *face-reverse (four with different wrapping)* [{1.4.4.textures_exercise2}](src/1.4.4.textures_exercise2)
+  - Homework 3: *texture blending* [{1.4.6.textures_exercise4}](src/1.4.6.textures_exercise4)

@@ -1,10 +1,9 @@
 /******************************************************************************
- * File:        1.4.3.textures_exercise1.cpp
+ * File:        1.4.4.textures_exercise2.cpp
  * Author:      Davide Tarpini (https://github.com/Sparkhand)
- * Description: Starting from 1.4.2.textures_combined.cpp, this exercise
- *              requires to flip the face horizontally and change the
- *              interpolation value such that the face is more visible than
- *              the container.
+ * Description: Taking 1.4.2.textures_combined as a starting point, this
+ *              exercise requires to display four faces on a single container,
+ *              each with a different wrapping method.
  *****************************************************************************/
 
 #include <GLFW/glfw3.h>
@@ -27,7 +26,7 @@ const struct WINDOW_PROPS
     const unsigned int SCR_WIDTH = 800;
     const unsigned int SCR_HEIGHT = 600;
     // Window title
-    const char* TITLE = "LearnOpenGL - 1.4.3 - Textures Exercise 1";
+    const char* TITLE = "LearnOpenGL - 1.4.4 - Textures Exercise 2";
     // Clear color
     const struct CLEAR_COLOR
     {
@@ -43,7 +42,10 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
 GLFWwindow* glfwSetup();
 std::vector<unsigned int> getVObjects();
-unsigned int loadTexture(std::string path, bool transparency = false, bool flip = false);
+unsigned int loadTexture(std::string path,
+                         bool transparency = false,
+                         bool flip = false,
+                         int wrappingMethod = GL_REPEAT);
 void clearResources(unsigned int VBO, unsigned int VAO, unsigned int EBO);
 
 /* --------- Main --------- */
@@ -70,7 +72,7 @@ int main()
     }
 
     // Compile and link shaders
-    Shader ourShader("1.4.3.textures_exercise1.vs", "1.4.3.textures_exercise1.fs");
+    Shader ourShader("1.4.4.textures_exercise2.vs", "1.4.4.textures_exercise2.fs");
 
     // Vertex data and buffer
     std::vector<unsigned int> vObjects = getVObjects();
@@ -92,7 +94,8 @@ int main()
     unsigned int textureContainer;
     try
     {
-        textureContainer = loadTexture("resources/textures/container.jpg");
+        textureContainer = loadTexture("resources/textures/container.jpg", false, false,
+                                       GL_CLAMP_TO_EDGE);
     }
     catch (const std::exception& e)
     {
@@ -181,13 +184,13 @@ GLFWwindow* glfwSetup()
 // -----------------------------------------------------------------------------
 std::vector<unsigned int> getVObjects()
 {
-    // Vertices
+    // Vertices (for this exercise, texture coords should be changed to 2.0f)
     const float VERTICES[] = {
         // positions          // colors           // texture coords
-        0.5f,  0.5f,  0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f,  // top right
-        0.5f,  -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f,  // bottom right
+        0.5f,  0.5f,  0.0f, 1.0f, 0.0f, 0.0f, 2.0f, 2.0f,  // top right
+        0.5f,  -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 2.0f, 0.0f,  // bottom right
         -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,  // bottom left
-        -0.5f, 0.5f,  0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f   // top left
+        -0.5f, 0.5f,  0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 2.0f   // top left
     };
 
     // Indices
@@ -235,7 +238,10 @@ std::vector<unsigned int> getVObjects()
 
 // Load texture from file
 // -----------------------------------------------------------------------------
-unsigned int loadTexture(std::string path, bool transparency, bool flip)
+unsigned int loadTexture(std::string path,
+                         bool transparency,
+                         bool flip,
+                         int wrappingMethod)
 {
     // Texture creation and loading
     unsigned int texture;
@@ -243,9 +249,8 @@ unsigned int loadTexture(std::string path, bool transparency, bool flip)
     glBindTexture(GL_TEXTURE_2D, texture);
 
     // From here on, all texture functions will modify this texture object
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,
-                    GL_REPEAT);  // (default wrapping method)
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrappingMethod);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrappingMethod);
 
     // Texture filtering parameters
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
